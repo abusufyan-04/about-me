@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Me</title>
+    <style>
+        /* General Styles */
+        body {
+            background-color: #e9d884;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #700f8e;
+            color: rgb(237, 237, 122);
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+
+        /* Main Content Styles */
+        main {
+            padding: 20px;
+        }
+
+        /* Greeting Styles */
+        #greeting {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1626a2;
+            display: none; /* Initially hidden */
+            transition: opacity 1s ease-in; /* Fade-in effect */
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: #700f8e;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1>Abu Sufyan</h1>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#projects">Projects</a>
+            <a href="#contacts">Contacts</a> <!-- Updated link -->
+        </nav>
+    </header>
+
+    <main>
+        <!-- Bio Section -->
+        <section id="bio">
+            <article>
+                <h2>Bio</h2>
+                <p>Hello! I'm Abu Sufyan, a student at UNIRAZAK, studying Diploma in Information Technology. I like playing sports such as Badminton , and Football and i also like to play online games such as Mobile Legends and E football.</p>
+            </article>
+        </section>
+
+        <!-- Hobbies Section -->
+        <section id="hobbies">
+            <article>
+                <h2>Hobbies and Interests</h2>
+                <ul>
+                    <li>Badminton</li>
+                    <li>Football</li>
+                    <li>Online Games</li>
+                </ul>
+            </article>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects">
+            <article>
+                <h2>Accomplishment</h2>
+                <p>One of my favorite accomplishments was getting to the quarter-final of an e-sports event called Nimbus. In this project, I played an online game called Mobile Legends with my fellow teammates representing our university. It was a rewarding experience because we played against semi-pro and professional teams and were the only team representing a university that got past the qualifiers.</p>
+            </article>
+        </section>
+
+        <!-- Contacts Section -->
+        <section id="contacts">
+            <article>
+                <h2>Contact Information</h2>
+                <p>You can reach me at: <a href="mailto:abusufyan040806@gmail.com">abusufyan040806@gmail.com</a></p>
+            </article>
+        </section>
+
+        <!-- Greeting Button -->
+        <button id="greetButton">Click for a Greeting</button>
+        <div id="greeting"></div>
+    </main>
+
+    <!-- Footer section -->
+    <footer>
+        <p>&copy; 2024 Abu Sufyan. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // JavaScript Interaction
+        document.getElementById('greetButton').addEventListener('click', function() {
+            const userName = prompt("What is your name?");
+            const greetingDiv = document.getElementById('greeting');
+            greetingDiv.textContent = `Hello, ${userName}! Welcome to my page!`;
+            greetingDiv.style.display = 'block'; // Show the greeting
+            greetingDiv.style.opacity = 0; // Start with opacity 0
+            setTimeout(() => {
+                greetingDiv.style.opacity = 1; // Fade in effect
+            }, 10); // Small delay to allow the display change to take effect
+        });
+    </script>
