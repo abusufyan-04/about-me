@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Management System</title>
+    <style>
+        body {
+            background-color: #007bff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: black;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #0056b3;
+            color: white;
+            padding: 40px;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .header img {
+            position: absolute;
+            left: 20px;
+            height: 100px; /* Adjust the height as needed */
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #007bff;
+        }
+        input, label, select {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .leave-card {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        #otherReason {
+            display: none;
+            margin-top: 10px;
+        }
+        #endDateContainer {
+            display: none;
+        }
+    </style>
+</head>
+<body onload="initializeSystem()">
+
+    <!-- Header Section -->
+    <div class="header">
+        <img src="c:\Users\lanz_\OneDrive\Pictures\Screenshots\Screenshot 2025-03-06 081207.png">
+        The Archipelago Group Leave Management System
+    </div>
+
+    <div class="container" id="loginPage">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p id="message"></p>
+    </div>
+
+    <div class="container" id="userPage" style="display: none;">
+        <h2>Apply for Leave</h2>
+        <p><b>Remaining Leave Days:</b> <span id="remainingLeaves">20</span></p>
+        <label>Reason for Leave:</label>
+        <select id="leaveReason" onchange="toggleOtherReason()">
+            <option value="Medical">Medical</option>
+            <option value="Family Emergencies">Family Emergencies</option>
+            <option value="Vacation">Vacation</option>
+            <option value="Others">Others</option>
+        </select>
+        <input type="text" id="otherReason" placeholder="Please specify the reason">
+        <label>Leave Type:</label>
+        <select id="leaveType" onchange="toggleEndDate()">
+            <option value="Half Day">Half Day</option>
+            <option value="Full Day">Full Day</option>
+        </select>
+        <label>Starting Date:</label>
+        <input type="date" id="startDate">
+        <div id="endDateContainer">
+            <label>Ending Date:</label>
+            <input type="date" id="endDate">
+        </div>
+        <button onclick="applyLeave()">Submit</button>
+        <p id="userMessage"></p>
+
+        <h3>Your Leave Requests</h3>
+        <div id="employeeRequests"></div>
+
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container" id="adminPage" style="display: none;">
+        <h2>Admin Panel</h2>
+        <h3>Leave Requests</h3>
+        <div id="leaveRequests"></div>
+        <h3>Employee Leave Balances</h3>
+        <div id="employeeLeaveBalances"></div>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        let users = [
+            { username: "admin", password: "admin123", role: "admin" },
+            { username: "employee1", password: "pass123", role: "employee" },
+            { username: "employee2", password: "pass456", role: "employee" }
+        ];
+
+        function initializeSystem() {
+            // Clear existing data in localStorage
+            localStorage.removeItem("leaveRequests");
+            localStorage.removeItem("leaveBalances");
+
+            // Initialize leaveRequests and leaveBalances if they don't exist
+            if (!localStorage.getItem("leaveRequests")) {
+                localStorage.setItem("leaveRequests", JSON.stringify([]));
+            }
+            
+            if (!localStorage.getItem("leaveBalances")) {
+                let leaveBalances = {};
+                users.forEach(user => {
+                    if (user.role === "employee") {
+                        leaveBalances[user.username] = 20;
+                    }
+                });
+                localStorage.setItem("leaveBalances", JSON.stringify(leaveBalances));
+            }
+
+            loadPage();
+        }
+
+        function login() {
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+            let user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                localStorage.setItem("loggedInUser", JSON.stringify(user));
+                loadPage();
+            } else {
+                document.getElementById("message").innerText = "Invalid credentials. Try again.";
+            }
+        }
+
+        function loadPage() {
+            let user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+            if (!user) {
+                document.getElementById("loginPage").style.display = "block";
+                document.getElementById("userPage").style.display = "none";
+                document.getElementById("adminPage").style.display = "none";
+            } else if (user.role === "admin") {
+                document.getElementById("loginPage").style.display = "none";
+                document.getElementById("userPage").style.display = "none";
+                document.getElementById("adminPage").style.display = "block";
+                loadLeaveRequests();
+                loadEmployeeLeaveBalances();
+            } else {
+                document.getElementById("loginPage").style.display = "none";
+                document.getElementById("userPage").style.display = "block";
+                document.getElementById("adminPage").style.display = "none";
+                updateRemainingLeaves(user.username);
+                loadEmployeeRequests();
+                loadLeaveRequests();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("loggedInUser");
+            loadPage();
+        }
+
+        function toggleOtherReason() {
+            let leaveReason = document.getElementById("leaveReason").value;
+            let otherReasonInput = document.getElementById("otherReason");
+            if (leaveReason === "Others") {
+                otherReasonInput.style.display = "block";
+            } else {
+                otherReasonInput.style.display = "none";
+            }
+        }
+
+        function toggleEndDate() {
+            let leaveType = document.getElementById("leaveType").value;
+            let endDateContainer = document.getElementById("endDateContainer");
+            if (leaveType === "Half Day") {
+                endDateContainer.style.display = "none";
+            } else {
+                endDateContainer.style.display = "block";
+            }
+        }
+
+        function applyLeave() {
+            let user = JSON.parse(localStorage.getItem("loggedInUser"));
+            let leaveReason = document.getElementById("leaveReason").value;
+            let otherReason = document.getElementById("otherReason").value;
+            let leaveType = document.getElementById("leaveType").value;
+            let startDate = document.getElementById("startDate").value;
+            let endDate = leaveType === "Half Day" ? startDate : document.getElementById("endDate").value;
+
+            if (leaveReason === "Others" && otherReason.trim() === "") {
+                document.getElementById("userMessage").innerText = "Please specify the reason for leave.";
+                return;
+            }
+
+            if (!startDate) {
+                document.getElementById("userMessage").innerText = "Please select a start date.";
+                return;
+            }
+
+            if (leaveType === "Full Day" && !endDate) {
+                document.getElementById("userMessage").innerText = "Please select an end date.";
+                return;
+            }
+
+            let leaveBalances = JSON.parse(localStorage.getItem("leaveBalances"));
+            let remainingDays = leaveBalances[user.username];
+
+            let daysRequested = leaveType === "Half Day" ? 0.5 : (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1;
+
+            if (daysRequested > remainingDays) {
+                document.getElementById("userMessage").innerText = "Not enough leave days available.";
+                return;
+            }
+
+            let leaveRequests = JSON.parse(localStorage.getItem("leaveRequests"));
+            leaveRequests.push({
+                id: Date.now(),
+                user: user.username,
+                leaveReason: leaveReason === "Others" ? otherReason : leaveReason,
+                leaveType,
+                startDate,
+                endDate,
+                status: "Pending",
+                daysRequested
+            });
+            localStorage.setItem("leaveRequests", JSON.stringify(leaveRequests));
+
+            document.getElementById("userMessage").innerText = "Leave request submitted!";
+            loadLeaveRequests();
+        }
+
+        function loadLeaveRequests() {
+            let leaveRequests = JSON.parse(localStorage.getItem("leaveRequests"));
+            let leaveRequestsContainer = document.getElementById("leaveRequests");
+            leaveRequestsContainer.innerHTML = "";
+
+            leaveRequests.forEach(request => {
+                let leaveCard = document.createElement("div");
+                leaveCard.className = "leave-card";
+                leaveCard.innerHTML = `
+                    <p><b>${request.user}</b>: ${request.leaveReason} (${request.startDate} - ${request.endDate}) - <b>${request.status}</b></p>
+                    <p><b>Leave Type:</b> ${request.leaveType}</p>
+                    ${request.status === "Pending" ? `
+                        <button onclick="approveLeave(${request.id})">Approve</button>
+                        <button onclick="rejectLeave(${request.id})" style="background-color: red;">Reject</button>
+                    ` : ""}
+                `;
+                leaveRequestsContainer.appendChild(leaveCard);
+            });
+
+            loadEmployeeRequests();
+        }
+
+        function loadEmployeeLeaveBalances() {
+            let leaveBalances = JSON.parse(localStorage.getItem("leaveBalances"));
+            let balanceContainer = document.getElementById("employeeLeaveBalances");
+            balanceContainer.innerHTML = "";
+
+            for (let user in leaveBalances) {
+                balanceContainer.innerHTML += `<p><b>${user}:</b> ${leaveBalances[user]} days remaining</p>`;
+            }
+        }
+
+        function approveLeave(id) {
+            let leaveRequests = JSON.parse(localStorage.getItem("leaveRequests"));
+            let leaveBalances = JSON.parse(localStorage.getItem("leaveBalances"));
+            let request = leaveRequests.find(req => req.id === id);
+
+            if (request) {
+                request.status = "Approved";
+                leaveBalances[request.user] -= request.daysRequested;
+                localStorage.setItem("leaveRequests", JSON.stringify(leaveRequests));
+                localStorage.setItem("leaveBalances", JSON.stringify(leaveBalances));
+                loadLeaveRequests();
+                loadEmployeeLeaveBalances();
+                updateRemainingLeaves(request.user);
+            }
+        }
+
+        function rejectLeave(id) {
+            let leaveRequests = JSON.parse(localStorage.getItem("leaveRequests"));
+            let request = leaveRequests.find(req => req.id === id);
+
+            if (request) {
+                request.status = "Rejected";
+                localStorage.setItem("leaveRequests", JSON.stringify(leaveRequests));
+                loadLeaveRequests();
+            }
+        }
+
+        function updateRemainingLeaves(username) {
+            let leaveBalances = JSON.parse(localStorage.getItem("leaveBalances"));
+            document.getElementById("remainingLeaves").innerText = leaveBalances[username];
+        }
+
+        function loadEmployeeRequests() {
+            let user = JSON.parse(localStorage.getItem("loggedInUser"));
+            let leaveRequests = JSON.parse(localStorage.getItem("leaveRequests"));
+            let employeeRequestsContainer = document.getElementById("employeeRequests");
+            employeeRequestsContainer.innerHTML = "";
+
+            let userRequests = leaveRequests.filter(req => req.user === user.username);
+
+            userRequests.forEach(request => {
+                let leaveCard = document.createElement("div");
+                leaveCard.className = "leave-card";
+                leaveCard.innerHTML = `
+                    <p><b>${request.leaveReason}</b>: ${request.startDate} - ${request.endDate} - <b>${request.status}</b></p>
+                    <p><b>Leave Type:</b> ${request.leaveType}</p>
+                `;
+                employeeRequestsContainer.appendChild(leaveCard);
+            });
+        }
+    </script>
+
+</body>
+</html>
